@@ -4,14 +4,14 @@ tstart=tic;
 %% convert time budget to sample budget
 r_data=[2,10]; % intital replication number to calculate
 polydegree=1; % set the polyfit degree 
-[param.ntpredict,~,param.timebudget,~]=...
-    timeBudgetToSampleBudget(param.timebudget,r_data,polydegree);
+[param.ntpredict,t_data,param.timebudget,~]=...
+    timeBudgetToSampleBudget(param.timebudget,r_data,polydegree,Yinput);
 % use the above function to convert the time budget to sample budget
 function [r_predict,t_data,t_budget,p]=timeBudgetToSampleBudget...
-        (t_budget,r_data,polydegree)
+        (t_budget,r_data,polydegree,Yinput)
 r1=1;
 tic;
-Ytrafficmodel(r1);
+Yinput(r1);
 t1=toc;  % let it run once to load all the data.warm up the machine.
 clear t1;
 
@@ -20,22 +20,28 @@ t_data=zeros(size(r_data));
 
 for j=1:N 
 tic
-Ytrafficmodel(r_data(j));
+Yinput(r_data(j));
 t_data(j)=toc; % calculate the time we used when given different replication number
 end
 p=polyfit(r_data,t_data,polydegree); % using polyfit to fit all the r and t data
-r_predict=ceil(fzero(@(R) polyval(p,R)-t_budget,1e-6)); % predict the replication
+r_predict=ceil(fzero(@(R) polyval(p,R)-t_budget,1e-4)); % predict the replication
 % number we need to use when given a time budget
 end
 %% main part of MeanMC 
 param.nmax=min(param.ntpredict,param.nbudget);% set the minimum n budget
-param.nmumax=max((param.nmax-param.n0),1);% get the n budget to estimate mean
-if param.nmumax < param.n0;%if the cost to estimate the variance is too big, just
+if  param.n0>param.nmax/2;%if the cost to estimate the variance is too big, just
     param.exit=2; %estimate the mean,skip stage one.
     meanMCerr(param,tstart);%print warning message
-    mu=mean(Yinput(param.nmumax+param.n0)); 
+    mu=mean(Yinput(param.nmax)); 
 else
+    tic
     Yval=Yinput(param.n0); %use the initial sample size n0 to estimate variance
+    n0t_data=toc;
+    r_data2=[r_data,param.n0];
+    t_data2=[t_data,n0t_data];
+    p=polyfit(r_data2,t_data2,polydegree); % using polyfit to fit all the r and t data
+    param.ntpredict2=ceil(fzero(@(R) polyval(p,R)-param.timebudget,1e-4)); % predict the replication
+    param.nmax=min(param.nmax,param.ntpredict2);
     param.var=var(Yval);% calculate the sample variance--stage 1
     sig0=sqrt(param.var);
     sig0up=param.fudge*sig0;
@@ -63,10 +69,10 @@ else
         % get the min n by using cheb and BEfun
         end
     end
-    if param.n > param.nmumax  %too many samples for the time allowed
+    if param.n > param.nmax-param.n0  %too many samples for the time allowed
     param.exit=1;
     meanMCerr(param,tstart); %print warning message
-    param.n=floor(param.nmumax);
+    param.n=floor(param.nmax-param.n0);
     end
 %%  Split The Param.n into columns 
     nopt=min(param.npcmax,param.n);

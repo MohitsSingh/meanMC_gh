@@ -28,6 +28,7 @@ if isfield(param,'nbudget')
 else
     param.nbudget=nbudgetDefault;
 end
+
 % max N
 if isfield(param,'nmax');
     param.nmax=abs(param.nmax);

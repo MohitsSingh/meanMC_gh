@@ -1,5 +1,5 @@
 
-param.timebudget=1;
+param.timebudget=20;
 param.nbudget=1e6;
 param.n0=70;
 param.fudge=1.1;
