@@ -9,7 +9,6 @@ alphaDefault=0.01;      %uncertainty
 fudgeDefault=1.1;       %fudge factor for error estimate
 timebudgetDefault=30; % default time budget
 nbudgetDefault=1e9; % default N budget
-%if nargin<3; whfield=''; end
 %Error tolerance
 if isfield(param,'tol');
     param.tol=abs(param.tol);
