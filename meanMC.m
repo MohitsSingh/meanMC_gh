@@ -58,7 +58,7 @@ else
         else
         logsqrtnCLT=log(norminv(1-alpha1/2)/toloversig);
         param.n=min(ncheb,ceil(exp(2*fzero(BEfun,logsqrtnCLT))));
-        % get the min n (used to estimate mu) by using cheb and BEfun
+        % get the min n (used to estimate mu) from ncheb and nBEfun
         end
     end
     r_data2=[r_data,param.n0];%add another param.n0 data and estimate how many samples
