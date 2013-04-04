@@ -24,7 +24,7 @@ r_data=[2,10]; % do a small number of replication to train the model
 % using a function below to convert the time budget to sample budget
 
 %% main part of MeanMC 
-param.nmax=min(param.ntpredict,param.nbudget);% set the minimum n budget
+param.nmax=max(max(param.ntpredict,1),param.nbudget);% set the minimum n budget
 if  param.n0>param.nmax/2;%if the cost to estimate the variance is too big, just
     param.exit=2; %estimate the mean,skip stage one.
     meanMCerr(param,tstart);%print warning message
@@ -40,7 +40,7 @@ else
     param.kurtmax=(param.n0-3)/(param.n0-1) ...
         + ((alpha1*param.n0)/(1-alpha1))*(1-1/param.fudge^2)^2;%get kmax
     if sig0up==0; % if the variance is zero, just take n0 samples 
-        param.n=min(param.n0,param.nmumax);
+        param.n=param.n0;
     else
         toloversig=param.tol/sig0up;%tolerance over sigma
         ncheb=ceil(1/(alpha1*toloversig.^2)); % use Chebyshev inequality to estimate n
@@ -58,7 +58,7 @@ else
         else
         logsqrtnCLT=log(norminv(1-alpha1/2)/toloversig);
         param.n=min(ncheb,ceil(exp(2*fzero(BEfun,logsqrtnCLT))));
-        % get the min n (used to estimate mu) from ncheb and nBEfun
+        % get the min n (used to estimate mu) by using cheb and BEfun
         end
     end
     r_data2=[r_data,param.n0];%add another param.n0 data and estimate how many samples
